@@ -1,3 +1,45 @@
+
+import pandas as pd
+import numpy as np
+
+# Inicializa um dicionário para armazenar as variações
+variations = []
+
+# Loop para as colunas, excluindo a coluna de clusters 'clus'
+for col in df.drop('clus', axis=1).columns:
+    # Verifica o tipo de dado da coluna
+    if df.dtypes[col] == object:
+        # Para variáveis categóricas, calcula os percentuais por cluster
+        for cl in np.sort(df.clus.unique()):
+            vc = 100 * df.loc[df.clus == cl, col].value_counts(normalize=True)
+            vc_total = 100 * df[col].value_counts(normalize=True)
+            # Calcula a variação absoluta entre os clusters e o total
+            for cat in vc.index:
+                cluster_pct = vc.get(cat, 0)
+                total_pct = vc_total.get(cat, 0)
+                variation = abs(cluster_pct - total_pct)
+                variations.append({'Cluster': cl, 'Coluna': col, 'Categoria': cat, 'Variação (%)': variation})
+    else:
+        # Para variáveis numéricas, calcula a média por cluster
+        for cl in np.sort(df.clus.unique()):
+            cluster_mean = df.loc[df.clus == cl, col].mean()
+            total_mean = df[col].mean()
+            # Calcula a variação entre a média do cluster e o total
+            variation = abs(cluster_mean - total_mean)
+            variations.append({'Cluster': cl, 'Coluna': col, 'Média': cluster_mean, 'Variação': variation})
+
+# Cria um DataFrame para exibir as principais variações
+variations_df = pd.DataFrame(variations)
+
+# Filtra as maiores variações
+top_variations = variations_df.sort_values(by='Variação (%)', ascending=False).head(10)
+
+# Exibe as maiores variações
+print(top_variations)
+
+
+
+
 import pandas as pd
 import numpy as np
 
